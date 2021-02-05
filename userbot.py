@@ -8,7 +8,6 @@ from dotenv import load_dotenv
 from telethon import TelegramClient
 from telethon.tl.functions.channels import GetFullChannelRequest
 from telethon.tl.functions.phone import GetGroupCallRequest
-from telethon.tl.functions.phone import GetGroupParticipantsRequest
 from telethon.tl.functions.phone import JoinGroupCallRequest
 from telethon.tl.types import DataJSON
 
@@ -69,28 +68,6 @@ async def join_call(data):
     }
 
 
-async def get_participants(data):
-    chat = await get_entity(data['chat'])
-    full_chat = await client(GetFullChannelRequest(chat))
-    participants = await client(
-        GetGroupParticipantsRequest(
-            call=full_chat.full_chat.call,
-            ids=[],
-            sources=[],
-            offset='',
-            limit=5000,
-        ),
-    )
-
-    return {
-        '_': 'get_participants',
-        'data': [
-            {'source': x.source, 'user_id': x.user_id}
-            for x in participants.participants
-        ],
-    }
-
-
 async def websocket_handler(request):
     ws = web.WebSocketResponse()
     await ws.prepare(request)
@@ -106,8 +83,6 @@ async def websocket_handler(request):
             response = None
             if data['_'] == 'join':
                 response = await join_call(data['data'])
-            elif data['_'] == 'get_participants':
-                response = await get_participants(data['data'])
 
             if response is not None:
                 await ws.send_json(response)
