@@ -5,87 +5,87 @@ from json.decoder import JSONDecodeError
 from aiohttp import web
 from aiohttp.http_websocket import WSMsgType
 from dotenv import load_dotenv
-from telethon import TelegramClient
-from telethon.tl.functions.channels import GetFullChannelRequest
-from telethon.tl.functions.phone import GetGroupCallRequest
-from telethon.tl.functions.phone import GetGroupParticipantsRequest
-from telethon.tl.functions.phone import JoinGroupCallRequest
-from telethon.tl.types import DataJSON
+from pyrogram import Client
+from pyrogram.raw.functions.channels import GetFullChannel
+from pyrogram.raw.functions.phone import GetGroupParticipants
+from pyrogram.raw.functions.phone import JoinGroupCall
+from pyrogram.raw.types import DataJSON
 
 load_dotenv()
 
-client = TelegramClient(
-    'session', os.environ['API_ID'], os.environ['API_HASH'],
+client = Client(
+    "session", os.environ["API_ID"], os.environ["API_HASH"],
 )
 client.start()
 
 
-async def get_entity(chat):
-    try:
-        return await client.get_input_entity(chat['id'])
-    except ValueError:
-        if 'username' in chat:
-            return await client.get_entity(chat['username'])
-        raise
-
-
 async def join_call(data):
-    chat = await get_entity(data['chat'])
-    full_chat = await client(GetFullChannelRequest(chat))
-    call = await client(GetGroupCallRequest(full_chat.full_chat.call))
+    chat = await client.send(
+        GetFullChannel(
+            channel=await client.resolve_peer(
+                data["chat"]["id"]
+            )
+        )
+    )
 
-    result = await client(
-        JoinGroupCallRequest(
-            call=call.call,
+    result = await client.send(
+        JoinGroupCall(
+            call=chat.full_chat.call,
             muted=False,
             params=DataJSON(
                 data=json.dumps({
-                    'ufrag': data['ufrag'],
-                    'pwd': data['pwd'],
-                    'fingerprints': [{
-                        'hash': data['hash'],
-                        'setup': data['setup'],
-                        'fingerprint': data['fingerprint'],
+                    "ufrag": data["ufrag"],
+                    "pwd": data["pwd"],
+                    "fingerprints": [{
+                        "hash": data["hash"],
+                        "setup": data["setup"],
+                        "fingerprint": data["fingerprint"],
                     }],
-                    'ssrc': data['source'],
+                    "ssrc": data["source"],
                 }),
             ),
         ),
     )
 
-    transport = json.loads(result.updates[0].call.params.data)['transport']
+    transport = json.loads(result.updates[0].call.params.data)["transport"]
 
     return {
-        '_': 'get_join',
-        'data': {
-            'chat_id': data['chat']['id'],
-            'transport': {
-                'ufrag': transport['ufrag'],
-                'pwd': transport['pwd'],
-                'fingerprints': transport['fingerprints'],
-                'candidates': transport['candidates'],
+        "_": "get_join",
+        "data": {
+            "chat_id": data["chat"]["id"],
+            "transport": {
+                "ufrag": transport["ufrag"],
+                "pwd": transport["pwd"],
+                "fingerprints": transport["fingerprints"],
+                "candidates": transport["candidates"],
             },
         },
     }
 
 
 async def get_participants(data):
-    chat = await get_entity(data['chat'])
-    full_chat = await client(GetFullChannelRequest(chat))
-    participants = await client(
-        GetGroupParticipantsRequest(
-            call=full_chat.full_chat.call,
+    chat = await client.send(
+        GetFullChannel(
+            channel=await client.resolve_peer(
+                data["chat"]["id"]
+            )
+        )
+    )
+
+    participants = await client.send(
+        GetGroupParticipants(
+            call=chat.full_chat.call,
             ids=[],
             sources=[],
-            offset='',
+            offset="",
             limit=5000,
         ),
     )
 
     return {
-        '_': 'get_participants',
-        'data': [
-            {'source': x.source, 'user_id': x.user_id}
+        "_": "get_participants",
+        "data": [
+            {"source": x.source, "user_id": x.user_id}
             for x in participants.participants
         ],
     }
@@ -105,10 +105,10 @@ async def websocket_handler(request):
                 break
 
             response = None
-            if data['_'] == 'join':
-                response = await join_call(data['data'])
-            elif data['_'] == 'get_participants':
-                response = await get_participants(data['data'])
+            if data["_"] == "join":
+                response = await join_call(data["data"])
+            elif data["_"] == "get_participants":
+                response = await get_participants(data["data"])
 
             if response is not None:
                 await ws.send_json(response)
@@ -118,9 +118,9 @@ async def websocket_handler(request):
 
 def main():
     app = web.Application()
-    app.router.add_route('GET', '/', websocket_handler)
+    app.router.add_route("GET", "/", websocket_handler)
     web.run_app(app, port=1390)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
