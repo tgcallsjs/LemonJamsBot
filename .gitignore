@@ -1,0 +1,6 @@
+.env
+*.session
+*.session-journal
+build/
+node_modules/
+venv/
