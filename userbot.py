@@ -97,7 +97,6 @@ async def websocket_handler(request):
 
     async for msg in ws:
         if msg.type == WSMsgType.TEXT:
-            print(msg.data)
             try:
                 data = json.loads(msg.data)
             except JSONDecodeError:
