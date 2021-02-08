@@ -63,34 +63,6 @@ async def join_call(data):
     }
 
 
-async def get_participants(data):
-    chat = await client.send(
-        GetFullChannel(
-            channel=await client.resolve_peer(
-                data["chat"]["id"]
-            )
-        )
-    )
-
-    participants = await client.send(
-        GetGroupParticipants(
-            call=chat.full_chat.call,
-            ids=[],
-            sources=[],
-            offset="",
-            limit=5000,
-        ),
-    )
-
-    return {
-        "_": "get_participants",
-        "data": [
-            {"source": x.source, "user_id": x.user_id}
-            for x in participants.participants
-        ],
-    }
-
-
 async def websocket_handler(request):
     ws = web.WebSocketResponse()
     await ws.prepare(request)
@@ -107,8 +79,6 @@ async def websocket_handler(request):
             response = None
             if data["_"] == "join":
                 response = await join_call(data["data"])
-            elif data["_"] == "get_participants":
-                response = await get_participants(data["data"])
 
             if response is not None:
                 await ws.send_json(response)
