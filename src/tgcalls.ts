@@ -40,7 +40,7 @@ ws.on('message', response => {
 });
 
 const downloadSong = async (url: string): Promise<Readable> => {
-    const { stdout } = await exec(`youtube-dl -x -g -- "${url}"`);
+    const { stdout } = await exec(`youtube-dl --extract-audio --get-url -- "${url}"`);
     const ffmpeg = spawn('ffmpeg', ['-y', '-i', stdout.trim(), ...ffmpegOptions]);
     return ffmpeg.stdout;
 };
