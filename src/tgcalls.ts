@@ -40,9 +40,27 @@ ws.on('message', response => {
 });
 
 const downloadSong = async (url: string): Promise<Readable> => {
-    const { stdout } = await exec(`youtube-dl --extract-audio --get-url -- "${url}"`);
-    const ffmpeg = spawn('ffmpeg', ['-y', '-i', stdout.trim(), ...ffmpegOptions]);
-    return ffmpeg.stdout;
+    return new Promise(resolve => {
+        const ytdlChunks: string[] = [];
+        const ytdl = spawn('youtube-dl', [
+            '--extract-audio',
+            '--get-url',
+            url.replace(/'/g, `'"'"'`),
+        ]);
+
+        ytdl.stderr.on('data', data => console.error(data.toString()));
+
+        ytdl.stdout.on('data', data => {
+            ytdlChunks.push(data.toString());
+        });
+
+        ytdl.on('exit', () => {
+            const input = ytdlChunks.join('\n').trim();
+            const ffmpeg = spawn('ffmpeg', ['-y', '-i', input, ...ffmpegOptions]);
+
+            resolve(ffmpeg.stdout);
+        });
+    });
 };
 
 const createConnection = async (chat: Chat.SupergroupChat): Promise<void> => {
