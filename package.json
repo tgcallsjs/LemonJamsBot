@@ -10,9 +10,10 @@
   "author": "Andrew Lane <contact@lungers.com>",
   "license": "GPL-3.0",
   "dependencies": {
+    "@youtwitface/escape-html": "^1.0.0",
     "dotenv": "^8.2.0",
     "envalid": "^7.0.0",
-    "telegraf": "^4.0.2",
+    "telegraf": "^4.1.0",
     "tgcalls": "github:tgcallsjs/tgcalls#7ff06871620489dc624c2b5828bdf09cfdd07a05",
     "ws": "^7.4.3"
   },

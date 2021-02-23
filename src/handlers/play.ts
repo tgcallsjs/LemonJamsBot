@@ -19,5 +19,20 @@ export const playHandler = Composer.command('play', async ctx => {
 
     const index = await addToQueue(chat, text);
 
-    await ctx.reply(index === 0 ? 'Playing.' : `Queued at position ${index}.`);
+    let message;
+
+    switch (index) {
+        case -1:
+            message = 'Failed to download song.';
+            break;
+
+        case 0:
+            message = 'Playing.';
+            break;
+
+        default:
+            message = `Queued at position ${index}.`;
+    }
+
+    await ctx.reply(message);
 });
