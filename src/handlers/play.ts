@@ -1,4 +1,4 @@
-import { Composer } from 'telegraf';
+import { Composer, deunionize } from 'telegraf';
 import { addToQueue } from '../tgcalls';
 
 export const playHandler = Composer.command('play', async ctx => {
@@ -10,7 +10,7 @@ export const playHandler = Composer.command('play', async ctx => {
     }
 
     const [commandEntity] = ctx.message.entities!;
-    const text = ctx.message.text.slice(commandEntity.length + 1);
+    const text = ctx.message.text.slice(commandEntity.length + 1) || deunionize(ctx.message.reply_to_message)?.text;
 
     if (!text) {
         await ctx.reply('You need to specify a YouTube URL.');
