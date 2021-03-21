@@ -66,7 +66,7 @@ const downloadSong = async (url: string): Promise<DownloadedSong> => {
             const [inputUrl, _videoInfo] = ytdlData.split('\n');
             const videoInfo = JSON.parse(_videoInfo);
 
-            const ffmpeg = spawn('ffmpeg', ['-y', '-i', inputUrl, ...ffmpegOptions]);
+            const ffmpeg = spawn('ffmpeg', ['-y', '-nostdin', '-i', inputUrl, ...ffmpegOptions]);
 
             resolve({
                 stream: ffmpeg.stdout,
