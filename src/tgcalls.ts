@@ -1,9 +1,8 @@
 import { Chat } from 'typegram';
 import { exec as _exec, spawn } from 'child_process';
-import { JoinVoiceCallResponse } from 'tgcalls/lib/types';
 import { Stream, TGCalls } from 'tgcalls';
-import env from './env';
-import WebSocket from 'ws';
+import {getJoinCall} from 'gram-tgcalls/lib/calls';
+import {client} from './client';
 import { Readable } from 'stream';
 
 interface DownloadedSong {
@@ -20,31 +19,12 @@ interface CachedConnection {
     stream: Stream;
     queue: string[];
     currentSong: DownloadedSong['info'] | null;
-    joinResolve?: (value: JoinVoiceCallResponse) => void;
 }
 
-const ws = new WebSocket(env.WEBSOCKET_URL);
 const cache = new Map<number, CachedConnection>();
 
 const ffmpegOptions = ['-c', 'copy', '-acodec', 'pcm_s16le', '-f', 's16le', '-ac', '1', '-ar', '65000', 'pipe:1'];
 
-ws.on('message', response => {
-    const { _, data } = JSON.parse(response.toString());
-
-    switch (_) {
-        case 'get_join': {
-            const connection = cache.get(data.chat_id);
-            if (connection) {
-                connection.joinResolve?.(data);
-            }
-
-            break;
-        }
-
-        default:
-            break;
-    }
-});
 
 const downloadSong = async (url: string): Promise<DownloadedSong> => {
     return new Promise((resolve, reject) => {
@@ -96,25 +76,7 @@ const createConnection = async (chat: Chat.SupergroupChat): Promise<void> => {
         currentSong: null,
     };
 
-    connection.joinVoiceCall = payload => {
-        return new Promise(resolve => {
-            cachedConnection.joinResolve = resolve;
-
-            const data = {
-                _: 'join',
-                data: {
-                    ufrag: payload.ufrag,
-                    pwd: payload.pwd,
-                    hash: payload.hash,
-                    setup: payload.setup,
-                    fingerprint: payload.fingerprint,
-                    source: payload.source,
-                    chat: payload.params.chat,
-                },
-            };
-            ws.send(JSON.stringify(data));
-        });
-    };
+    connection.joinVoiceCall = getJoinCall(client, chat.id);
 
     cache.set(chat.id, cachedConnection);
     await connection.start(stream.createTrack());
