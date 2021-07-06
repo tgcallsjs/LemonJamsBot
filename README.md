@@ -2,18 +2,11 @@
 
 ## Setup
 
+- Install youtube-dl
 - Fill out the `.env`
+  - Get `STRING_SESSION` with `npx tgsession`
   - Copy `example.env` to `.env`
   - Put in your information
-- Start the userbot
-  - Install dependencies from pip
-    ```shell
-    $ pip install -r requirements.txt
-    ```
-  - Run the userbot
-    ```shell
-    $ python userbot.py
-    ```
 - Start the bot
   - Install dependencies from npm
     ```shell
