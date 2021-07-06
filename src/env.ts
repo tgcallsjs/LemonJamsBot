@@ -5,7 +5,7 @@ dotenv.config();
 
 export default cleanEnv(process.env, {
     BOT_TOKEN: str(),
-    STRING_SESSION: str({ default: '' }),
+    STRING_SESSION: str(),
     API_ID: num(),
     API_HASH: str(),
 });
