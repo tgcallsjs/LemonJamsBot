@@ -1,8 +1,8 @@
 import { Chat } from 'typegram';
 import { exec as _exec, spawn } from 'child_process';
 import { Stream, TGCalls } from 'tgcalls';
-import {getJoinCall} from 'gram-tgcalls/lib/calls';
-import {client} from './client';
+import { getJoinCall } from 'gram-tgcalls/lib/calls';
+import { client } from './client';
 import { Readable } from 'stream';
 
 interface DownloadedSong {
