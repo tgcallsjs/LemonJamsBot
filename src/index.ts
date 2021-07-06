@@ -6,7 +6,6 @@ import { initHandlers } from './handlers';
     initHandlers();
 
     await client.start({ botAuthToken: '' });
-    console.log(client.session.save());
     await bot.launch();
     console.log(`@${bot.botInfo?.username} is running...`);
 })();
