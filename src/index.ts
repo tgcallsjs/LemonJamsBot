@@ -8,7 +8,7 @@ import { initHandlers } from './handlers';
 
     await client.start({ botAuthToken: '' });
     const me = await client.getMe() as Api.User;
-    console.log('Logged in as ', me?.firstName);
+    console.log('Logged in as', me?.firstName);
 
     await bot.launch();
     console.log(`@${bot.botInfo?.username} is running...`);
