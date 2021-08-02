@@ -1,23 +1,24 @@
-import { Composer, deunionize } from 'telegraf';
+import { Composer } from 'grammy';
 import { addToQueue } from '../tgcalls';
 
-export const playHandler = Composer.command('play', async ctx => {
-    const { chat } = ctx.message;
+const composer = new Composer();
 
-    if (chat.type !== 'supergroup') {
-        await ctx.reply('I can only play in groups.');
+composer.command('play', async ctx => {
+    if (ctx.chat.type !== 'supergroup') {
         return;
     }
 
-    const [commandEntity] = ctx.message.entities!;
-    const text = ctx.message.text.slice(commandEntity.length + 1) || deunionize(ctx.message.reply_to_message)?.text;
+    const [commandEntity] = ctx.message?.entities!;
+    const text =
+        ctx.message?.text?.slice(commandEntity.length + 1) ||
+        ctx.message?.reply_to_message?.text;
 
     if (!text) {
         await ctx.reply('You need to specify a YouTube URL.');
         return;
     }
 
-    const index = await addToQueue(chat, text);
+    const index = await addToQueue(ctx.chat, text);
 
     let message;
 
@@ -36,3 +37,5 @@ export const playHandler = Composer.command('play', async ctx => {
 
     await ctx.reply(message);
 });
+
+export default composer;

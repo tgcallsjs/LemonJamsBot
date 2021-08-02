@@ -1,4 +1,4 @@
-import { Chat } from 'typegram';
+import { Chat } from '@grammyjs/types';
 import { Stream, TGCalls } from 'tgcalls';
 import { getJoinCall } from 'gram-tgcalls/lib/calls';
 import ytdl from 'ytdl-core-telegram';
@@ -23,7 +23,6 @@ interface CachedConnection {
 
 const cache = new Map<number, CachedConnection>();
 
-
 const downloadSong = async (url: string): Promise<DownloadedSong> => {
     const info = await ytdl.getInfo(url);
 
@@ -32,9 +31,9 @@ const downloadSong = async (url: string): Promise<DownloadedSong> => {
         info: {
             id: info.videoDetails.videoId,
             title: info.videoDetails.title,
-            duration: Number(info.videoDetails.lengthSeconds)
-        }
-    }
+            duration: Number(info.videoDetails.lengthSeconds),
+        },
+    };
 };
 
 const createConnection = async (chat: Chat.SupergroupChat): Promise<void> => {
@@ -73,7 +72,10 @@ const createConnection = async (chat: Chat.SupergroupChat): Promise<void> => {
     });
 };
 
-export const addToQueue = async (chat: Chat.SupergroupChat, url: string): Promise<number | null> => {
+export const addToQueue = async (
+    chat: Chat.SupergroupChat,
+    url: string,
+): Promise<number | null> => {
     if (!cache.has(chat.id)) {
         await createConnection(chat);
         return addToQueue(chat, url);
@@ -100,7 +102,9 @@ export const addToQueue = async (chat: Chat.SupergroupChat, url: string): Promis
     return queue.push(url);
 };
 
-export const getCurrentSong = (chatId: number): DownloadedSong['info'] | null => {
+export const getCurrentSong = (
+    chatId: number,
+): DownloadedSong['info'] | null => {
     if (cache.has(chatId)) {
         const { currentSong } = cache.get(chatId)!;
         return currentSong;

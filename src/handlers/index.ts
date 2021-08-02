@@ -1,15 +1,19 @@
-import { bot } from '../bot';
+import { Composer } from 'grammy';
 
-import { playHandler } from './play';
-import { queueHandler } from './queue';
-import { songHandler } from './song';
-import { pauseHandler } from './pause';
-import { skipHandler } from './skip';
+import play from './play';
+import queue from './queue';
+import song from './song';
+import pause from './pause';
+import skip from './skip';
 
-export const initHandlers = (): void => {
-    bot.use(playHandler);
-    bot.use(queueHandler);
-    bot.use(songHandler);
-    bot.use(pauseHandler);
-    bot.use(skipHandler);
-};
+const composer = new Composer();
+
+composer
+    .filter(ctx => ctx.chat?.type == 'supergroup')
+    .use(play)
+    .use(queue)
+    .use(song)
+    .use(pause)
+    .use(skip);
+
+export default composer;

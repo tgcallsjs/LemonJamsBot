@@ -1,13 +1,11 @@
-import { Composer } from 'telegraf';
+import { Composer } from 'grammy';
 import { skip } from '../tgcalls';
 
-export const skipHandler = Composer.command('skip', ctx => {
-    const { chat } = ctx.message;
+const composer = new Composer();
 
-    if (chat.type !== 'supergroup') {
-        return;
-    }
-
-    const skipped = skip(chat.id);
+composer.command('skip', ctx => {
+    const skipped = skip(ctx.chat.id);
     ctx.reply(skipped ? 'Skipped.' : "There's no song playing.");
 });
+
+export default composer;

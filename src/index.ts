@@ -1,15 +1,16 @@
 import { Api } from 'telegram';
 import { client } from './client';
 import { bot } from './bot';
-import { initHandlers } from './handlers';
+import handlers from './handlers';
 
 (async () => {
-    initHandlers();
+    bot.use(handlers);
 
     await client.start({ botAuthToken: '' });
-    const me = await client.getMe() as Api.User;
+    const me = (await client.getMe()) as Api.User;
     console.log('Logged in as', me?.firstName);
 
-    await bot.launch();
-    console.log(`@${bot.botInfo?.username} is running...`);
+    await bot.start();
+    const botUsername = (await bot.api.getMe()).username;
+    console.log(`@${botUsername} is running...`);
 })();

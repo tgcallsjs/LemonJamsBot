@@ -1,15 +1,18 @@
-import { Composer } from 'telegraf';
+import { Composer } from 'grammy';
 import { pause } from '../tgcalls';
 
-export const pauseHandler = Composer.command(['pause', 'resume'], async ctx => {
-    const { chat } = ctx.message;
+const composer = new Composer();
 
-    if (chat.type !== 'supergroup') {
-        return;
-    }
+composer.command(['pause', 'resume'], ctx => {
+    const paused = pause(ctx.chat.id);
+    const message =
+        paused === null
+            ? "There's nothing playing here."
+            : paused
+            ? 'Paused.'
+            : 'Resumed.';
 
-    const paused = await pause(chat.id);
-    const message = paused === null ? "There's nothing playing here." : paused ? 'Paused.' : 'Resumed.';
-
-    await ctx.reply(message);
+    return ctx.reply(message);
 });
+
+export default composer;
