@@ -1,7 +1,7 @@
-import { Chat } from 'typegram';
-import { exec as _exec, spawn } from 'child_process';
+import { Chat } from '@grammyjs/types';
 import { Stream, TGCalls } from 'tgcalls';
 import { getJoinCall } from 'gram-tgcalls/lib/calls';
+import ytdl from 'ytdl-core-telegram';
 import { client } from './client';
 import { Readable } from 'stream';
 
@@ -23,41 +23,17 @@ interface CachedConnection {
 
 const cache = new Map<number, CachedConnection>();
 
-const ffmpegOptions = ['-c', 'copy', '-acodec', 'pcm_s16le', '-f', 's16le', '-ac', '1', '-ar', '65000', 'pipe:1'];
-
-
 const downloadSong = async (url: string): Promise<DownloadedSong> => {
-    return new Promise((resolve, reject) => {
-        const ytdlChunks: string[] = [];
-        const ytdl = spawn('youtube-dl', ['--extract-audio', '--print-json', '--get-url', url.replace(/'/g, `'"'"'`)]);
+    const info = await ytdl.getInfo(url);
 
-        ytdl.stderr.on('data', data => console.error(data.toString()));
-
-        ytdl.stdout.on('data', data => {
-            ytdlChunks.push(data.toString());
-        });
-
-        ytdl.on('exit', code => {
-            if (code !== 0) {
-                return reject();
-            }
-
-            const ytdlData = ytdlChunks.join('');
-            const [inputUrl, _videoInfo] = ytdlData.split('\n');
-            const videoInfo = JSON.parse(_videoInfo);
-
-            const ffmpeg = spawn('ffmpeg', ['-y', '-nostdin', '-i', inputUrl, ...ffmpegOptions]);
-
-            resolve({
-                stream: ffmpeg.stdout,
-                info: {
-                    id: videoInfo.id,
-                    title: videoInfo.title,
-                    duration: videoInfo.duration,
-                },
-            });
-        });
-    });
+    return {
+        stream: ytdl.downloadFromInfo(info),
+        info: {
+            id: info.videoDetails.videoId,
+            title: info.videoDetails.title,
+            duration: Number(info.videoDetails.lengthSeconds),
+        },
+    };
 };
 
 const createConnection = async (chat: Chat.SupergroupChat): Promise<void> => {
@@ -96,7 +72,10 @@ const createConnection = async (chat: Chat.SupergroupChat): Promise<void> => {
     });
 };
 
-export const addToQueue = async (chat: Chat.SupergroupChat, url: string): Promise<number | null> => {
+export const addToQueue = async (
+    chat: Chat.SupergroupChat,
+    url: string,
+): Promise<number | null> => {
     if (!cache.has(chat.id)) {
         await createConnection(chat);
         return addToQueue(chat, url);
@@ -123,7 +102,9 @@ export const addToQueue = async (chat: Chat.SupergroupChat, url: string): Promis
     return queue.push(url);
 };
 
-export const getCurrentSong = (chatId: number): DownloadedSong['info'] | null => {
+export const getCurrentSong = (
+    chatId: number,
+): DownloadedSong['info'] | null => {
     if (cache.has(chatId)) {
         const { currentSong } = cache.get(chatId)!;
         return currentSong;

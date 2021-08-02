@@ -1,14 +1,10 @@
-import { Composer } from 'telegraf';
+import { Composer } from 'grammy';
 import { getQueue } from '../tgcalls';
 
-export const queueHandler = Composer.command('queue', ctx => {
-    const { chat } = ctx.message;
+const composer = new Composer();
 
-    if (chat.type !== 'supergroup') {
-        return;
-    }
-
-    const queue = getQueue(chat.id);
+composer.command('queue', ctx => {
+    const queue = getQueue(ctx.chat.id);
     const message =
         queue && queue.length > 0
             ? queue.map((url, index) => `${index + 1}. ${url}`).join('\n')
@@ -16,3 +12,5 @@ export const queueHandler = Composer.command('queue', ctx => {
 
     ctx.reply(message);
 });
+
+export default composer;

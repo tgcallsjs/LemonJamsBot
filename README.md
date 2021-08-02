@@ -2,7 +2,6 @@
 
 ## Setup
 
-- Install youtube-dl
 - Fill out the `.env`
   - Get `STRING_SESSION` with `npx tgsession`
   - Copy `example.env` to `.env`
