@@ -10,7 +10,7 @@ import handlers from './handlers';
     const me = (await client.getMe()) as Api.User;
     console.log('Logged in as', me?.firstName);
 
-    await bot.start();
     const botUsername = (await bot.api.getMe()).username;
     console.log(`@${botUsername} is running...`);
+    await bot.start();
 })();
